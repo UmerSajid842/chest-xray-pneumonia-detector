@@ -1,5 +1,6 @@
-import torch
+import pytest
 
+torch = pytest.importorskip("torch")
 from src.inference import WARNING
 from src.model import build_model
 
