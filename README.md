@@ -24,13 +24,31 @@ The notebook explains the end-to-end workflow: dataset contract, preprocessing, 
 ├── tests/
 │   └── test_model_and_inference.py
 ├── docs/
-│   └── MODEL_CARD.md
+│   ├── assets/
+│   │   ├── sample-normal.jpeg
+│   │   └── sample-pneumonia.jpeg
+│   ├── MODEL_CARD.md
+│   └── SMOKE_RUN.md
+├── scripts_train.py
 ├── requirements.txt
 ├── LICENSE
 └── README.md
 ```
 
 ## Dataset contract
+
+The code expects an **untracked** dataset directory with this layout. The dataset used for the first smoke run was downloaded exactly with the KaggleHub command below:
+
+```python
+import kagglehub
+
+path = kagglehub.dataset_download("ghost5612/chest-x-ray-images-normal-and-pneumonia")
+print("Path to dataset files:", path)
+```
+
+The source is the [Chest X-Ray Images (Normal and Pneumonia) Kaggle dataset](https://www.kaggle.com/datasets/ghost5612/chest-x-ray-images-normal-and-pneumonia). The full dataset is intentionally not committed. Review the current Kaggle terms before redistribution or deployment.
+
+Observed image counts from the downloaded version were: train `NORMAL=1,341`, `PNEUMONIA=3,875`; validation `NORMAL=24`, `PNEUMONIA=23`; test `NORMAL=234`, `PNEUMONIA=390`; total `5,887` JPEG images.
 
 The code expects an **untracked** dataset directory with this layout:
 
@@ -84,13 +102,27 @@ print(result)
 
 The returned object includes the predicted class, class probabilities, threshold, and a warning that the result is not a medical diagnosis.
 
+## Dataset examples
+
+The following representative images are included only to make the README and notebook easier to understand. They are source dataset examples, not model predictions or medical guidance.
+
+| NORMAL class example | PNEUMONIA class example |
+| --- | --- |
+| ![Representative normal chest X-ray](docs/assets/sample-normal.jpeg) | ![Representative pneumonia-class chest X-ray](docs/assets/sample-pneumonia.jpeg) |
+
+## Dataset-backed smoke run
+
+A one-training-batch CPU smoke run was completed against the downloaded dataset, followed by full validation and test evaluation. It produced `train_loss=0.5903142094612122`, `val_loss=0.8002765026498349`, test accuracy `0.375`, and ROC-AUC `0.7438965592811746`. The confusion matrix was `[[234, 0], [390, 0]]`; the model predicted every test image as `NORMAL`.
+
+These results are **not a benchmark** because only one training batch was used. They are included to show a real, reproducible execution and the importance of balanced training and error analysis. Full command and output are documented in [docs/SMOKE_RUN.md](docs/SMOKE_RUN.md).
+
 ## Evaluation expectations
 
 For a trustworthy experiment, report sensitivity/recall, specificity, precision, F1, ROC-AUC, confusion matrix, calibration, and subgroup or site-level error analysis where metadata and permissions allow. Accuracy alone is not sufficient for a medical-imaging classifier. This repository does not assert a benchmark until a reproducible run with a documented dataset split and saved evaluation report is added.
 
 ## Hugging Face deployment note
 
-The CV describes a public Hugging Face Gradio deployment. A deployment can be recreated by wrapping `predict_image` in a Gradio interface and loading a user-provided checkpoint through a secret or a private artifact store. Do not upload patient data, credentials, or an unreviewed clinical model. The notebook and source code here are the canonical implementation scaffold; deployment URLs should be added only after they are verified.
+The CV describes a public Hugging Face Gradio deployment. The repository now includes the dataset-backed training path and sample documentation images, but no unverified live deployment URL is claimed here. A deployment can be recreated by wrapping `predict_image` in a Gradio interface and loading a user-provided checkpoint through a secret or a private artifact store. Do not upload patient data, credentials, or an unreviewed clinical model. The notebook and source code here are the canonical implementation scaffold; deployment URLs should be added only after they are verified.
 
 ## Limitations
 
